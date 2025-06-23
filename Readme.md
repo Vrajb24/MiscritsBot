@@ -17,9 +17,11 @@ Welcome to the **Miscrits Auto-Player Bot**! This Python-based automation tool i
 ## 🛠️ Requirements
 
 - Python 3.7+
-- [Selenium](https://pypi.org/project/selenium/) (for browser automation)
-- Chrome or Firefox WebDriver
-- Miscrits game account
+- `pip` (Python package manager)
+- Run the following command to install required packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ---
 
