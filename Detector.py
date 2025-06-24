@@ -4,6 +4,7 @@ import pygetwindow as gw
 import pyautogui
 import time
 import re
+from datetime import datetime
 import easyocr  # Changed from pytesseract to easyocr
 from ultralytics import YOLO  # Use ultralytics package
 
@@ -37,6 +38,15 @@ def click_on_rock():
     x, y, w, h = get_window_bbox(window_title)
     click_x = x + w // 2
     click_y = y + h // 2 - 10
+    click_at(click_x, click_y)
+    print(f"Clicked in the middle of the window at ({click_x}, {click_y})")
+
+def click_on_blighted_bush():
+    window_title = "Miscrits"  # Change this to your window's title
+    frame = capture_window(window_title)
+    x, y, w, h = get_window_bbox(window_title)
+    click_x = x + 660
+    click_y = y + 280
     click_at(click_x, click_y)
     print(f"Clicked in the middle of the window at ({click_x}, {click_y})")
 
@@ -267,11 +277,204 @@ def capture_him():
 
 def take_screenshot():
     screenshot = pyautogui.screenshot(region=region)
-    filename = f"screenshots/screenshot_{screenshot_count}.png"
+    now = datetime.now()
+    filename = f"screenshots/screenshot_{now.strftime('%d-%m-%y-%H-%M')}.png"
     screenshot.save(filename)
     print(f"Saved {filename}")
     
+def train_individual(miscrit_no, bonus):
+    window_title = "Miscrits"
+    x, y, w, h = get_window_bbox(window_title)
+    if miscrit_no == 1:
+        click_x = x + 390
+        click_y = y + 150
+    elif miscrit_no == 2:
+        click_x = x + 390
+        click_y = y + 200
+    elif miscrit_no == 3:
+        click_x = x + 390
+        click_y = y + 250
+    elif miscrit_no == 4:
+        click_x = x + 390
+        click_y = y + 300
+    else:
+        raise ValueError("miscrit_no must be 1, 2, 3, or 4")
+    click_at(click_x, click_y)
+
+    time.sleep(2)
+
+    window_title = "Miscrits"
+    frame = capture_window(window_title)
+    x, y, w, h = get_window_bbox(window_title)
+
+    # Define the box region (example: 100x40 box at some position)
+    box_w, box_h = 150, 50
+
+    box_x = x + 595
+    box_y = y + 67
+
+    # Capture the box region
+    box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
+    box_img_cv = cv2.cvtColor(np.array(box_img), cv2.COLOR_RGB2BGR)
+
+    # OCR using easyocr
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(box_img_cv, detail=0)
+    text1 = result[0] if result else ""
+
+    # Define the box region (example: 100x40 box at some position)
+    box_w, box_h = 150, 50
+
+    box_x = x + 670
+    box_y = y + 70
+
+    # Capture the box region
+    box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
+    box_img_cv = cv2.cvtColor(np.array(box_img), cv2.COLOR_RGB2BGR)
+
+    # OCR using easyocr
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(box_img_cv, detail=0)
+    text2 = result[0] if result else ""
+
+    if (text1.strip().lower() == "trainnow"):
+        print("level <30:", text1.strip())
+    elif(text2.strip().lower() == "trainnow"):
+        print("level >=30:", text2.strip())
+    else:
+        print("Miscrit:",miscrit_no,"Not ready for training:")
+        
+
+    if text1.strip().lower() == "train" or text2.strip().lower() == "train":
+        return
+    elif text1.strip().replace(" ", "").lower() == "trainnow":
+        click_x = x + 670
+        click_y = y + 90
+        click_at(click_x, click_y)
+        time.sleep(3)
+
+    elif text2.strip().replace(" ", "").lower() == "trainnow":
+        click_x = x + 750
+        click_y = y + 90
+        click_at(click_x, click_y)
+        time.sleep(3)
+
+    click_x = x + w/2
+    click_y = y + h/2
+    click_at(click_x, click_y)
+
+    time.sleep(3)
+
+    if bonus:
+        click_x = x + 570
+        click_y = y + 655
+        click_at(click_x, click_y)
+
+        time.sleep(3)
+
+        click_x = x + 640
+        click_y = y + 655
+        click_at(click_x, click_y, hold_time=3)
+
+    else:
+
+        click_x = x + 790
+        click_y = y + 655
+        click_at(click_x, click_y)
+
+        
+
+    time.sleep(7)
+
+    # New OCR box for "l 170 and h 32 at 455 from left and 207 from top"
+    box_w, box_h = 170, 32
+    box_x = x + 455
+    box_y = y + 207
+
+    box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
+    box_img_cv = cv2.cvtColor(np.array(box_img), cv2.COLOR_RGB2BGR)
+
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(box_img_cv, detail=0)
+    text = result[0] if result else ""
+    print("OCR for New Ability:", text.strip())
+
+    if text.strip().replace(" ", "").lower() == "newabilitiesl":
+        # Click at (670, 370)
+        click_x = x + 670
+        click_y = y + 370
+        click_at(click_x, click_y)
+        time.sleep(2)
+        # Click at (650, 426)
+        click_x = x + 630
+        click_y = y + 426
+        click_at(click_x, click_y)
+        time.sleep(2)
+        # Click at (775, 510)
+        click_x = x + 775
+        click_y = y + 510
+        click_at(click_x, click_y)
+
+
+
+def train():
+    window_title = "Miscrits"
+    x, y, w, h = get_window_bbox(window_title)
+    click_x = x + 565
+    click_y = y + 70
+    click_at(click_x, click_y)
+
+    time.sleep(3)
+
+    train_individual(1, False)
+    time.sleep(1)
+    train_individual(2, True)   
+    time.sleep(1)
+    train_individual(3, False)
+    time.sleep(1)
+    train_individual(4, False)
+    time.sleep(1)
+
+    click_x = x + 995
+    click_y = y + 60
+    click_at(click_x, click_y)
+
     
+def check_for_quest_completion():
+    window_title = "Miscrits"
+    x, y, w, h = get_window_bbox(window_title)
+    box_w, box_h = 102, 27
+    box_x = x + 593
+    box_y = y + 453
+
+    box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
+    box_img_cv = cv2.cvtColor(np.array(box_img), cv2.COLOR_RGB2BGR)
+
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(box_img_cv, detail=0)
+    text = result[0] if result else ""
+
+    # print("OCR Result for Quest Completion:", text.strip())
+    # # Visualize the OCR box on the captured frame
+    # window_title = "Miscrits"
+    # frame = capture_window(window_title)
+    # cv2.rectangle(
+    #     frame,
+    #     (box_x - x, box_y - y),
+    #     (box_x - x + box_w, box_y - y + box_h),
+    #     (0, 255, 0),
+    #     2
+    # )
+    # cv2.imshow("Quest Completion OCR Box", frame)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    if text.strip().lower() == "@koy":
+        click_x = box_x + box_w // 2
+        click_y = box_y + box_h // 2
+        click_at(click_x, click_y)
+        print(f"Clicked at center of OCR box ({click_x}, {click_y}) because text was 'okay'")
+
 
 if __name__ == "__main__":
     
@@ -279,8 +482,12 @@ if __name__ == "__main__":
     region = (1280, 0, 1280, 1440)
     screenshot_count = 0
     for iter in range(200): 
-
-        if iter % 60 == 0 and iter != 0:
+        
+        if iter % 10 == 0 and iter != 0:
+            check_for_quest_completion()  # Check for quest completion every 10 iterations
+            train()  # Train every 10 
+            
+        if iter % 30 == 0 and iter != 0:
             window_title = "Miscrits"
             x, y, w, h = get_window_bbox(window_title)
             click_x = x + 840
@@ -295,7 +502,8 @@ if __name__ == "__main__":
             click_y = y + 423
             click_at(click_x, click_y)
               
-        click_on_rock()  # Click in the middle of the window
+        # click_on_rock()  # Blighted Flue
+        click_on_blighted_bush()
         time.sleep(7)
         take_screenshot()
         screenshot_count += 1    # Take a screenshot every iteration
@@ -313,7 +521,7 @@ if __name__ == "__main__":
                 (rarity == "common" and chance_value <= 28 ) or
                 (rarity == "rare" and chance_value <= 20) or
                 (rarity == "epic" and chance_value <= 10) or
-                (rarity == "exotic" and chance_value <= 1) or
+                (rarity == "exotic" and chance_value <= 10) or
                 (rarity == "legendary")
             ):
                 print("capture on!")
