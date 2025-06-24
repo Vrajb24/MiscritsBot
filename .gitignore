@@ -1,0 +1,6 @@
+# Ignore all files inside the screenshots and screenshots old folders
+screenshots/
+screenshots old/
+
+# Ignore the MiscBot folder
+MiscBot/
