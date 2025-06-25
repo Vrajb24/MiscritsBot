@@ -6,76 +6,113 @@ import time
 import re
 from datetime import datetime
 import easyocr  # Changed from pytesseract to easyocr
-from ultralytics import YOLO  # Use ultralytics package
 import numpy as np
 import win32gui
+import win32ui
+import win32con
+from ctypes import windll
+import win32api
 
-def click_at(click_x, click_y, hold_time=0.25):
-    pyautogui.mouseDown(click_x, click_y)
-    pyautogui.sleep(hold_time)
-    pyautogui.mouseUp(click_x, click_y)
-
-def get_window_bbox(window_title):
-    win = None
-    for w in gw.getAllWindows():
-        if window_title.lower() in w.title.lower():
-            win = w
-            break
-    if win is None:
+def get_window_handle(window_title):
+    """Gets the handle of the window."""
+    handle = win32gui.FindWindow(None, window_title)
+    if handle == 0:
         raise Exception("Window not found")
-    if win.isMinimized:
-        raise Exception("Window is minimized. Please restore the window.")
-    return (win.left, win.top, win.width, win.height)
+    return handle
+
+def get_window_bbox(hwnd):
+    """Gets the bounding box of a window from its handle."""
+    rect = win32gui.GetWindowRect(hwnd)
+    x = rect[0]
+    y = rect[1]
+    w = rect[2] - x
+    h = rect[3] - y
+    return (x, y, w, h)
+
+def click_at(hwnd, click_x, click_y, hold_time=0.25):
+    """Sends a click to a window in the background."""
+    lParam = win32api.MAKELONG(click_x, click_y)
+
+    win32api.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+    pyautogui.sleep(hold_time)
+    win32api.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, lParam)
 
 
-def capture_window(window_title):
-    x, y, w, h = get_window_bbox(window_title)
-    img = pyautogui.screenshot(region=(x, y, w, h))
-    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    return img
+def capture_window(hwnd):
+    """Captures the contents of a window even if it's in the background."""
+    x, y, w, h = get_window_bbox(hwnd)
+
+    wDC = win32gui.GetWindowDC(hwnd)
+    dcObj = win32ui.CreateDCFromHandle(wDC)
+    cDC = dcObj.CreateCompatibleDC()
+    dataBitMap = win32ui.CreateBitmap()
+    dataBitMap.CreateCompatibleBitmap(dcObj, w, h)
+    cDC.SelectObject(dataBitMap)
+    cDC.BitBlt((0, 0), (w, h), dcObj, (0, 0), win32con.SRCCOPY)
+
+    # To get the data into a format that OpenCV can use
+    signedIntsArray = dataBitMap.GetBitmapBits(True)
+    img = np.fromstring(signedIntsArray, dtype='uint8')
+    img.shape = (h, w, 4)
+
+    # Free Resources
+    dcObj.DeleteDC()
+    cDC.DeleteDC()
+    win32gui.ReleaseDC(hwnd, wDC)
+    win32gui.DeleteObject(dataBitMap.GetHandle())
+
+    # Drop the alpha channel, and convert to BGR
+    return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
 def click_on_rock():
-    window_title = "Miscrits"  # Change this to your window's title
-    frame = capture_window(window_title)
-    x, y, w, h = get_window_bbox(window_title)
-    click_x = x + w // 2
-    click_y = y + h // 2 - 10
-    click_at(click_x, click_y)
+    window_title = "Miscrits"
+    hwnd = get_window_handle(window_title)
+    x, y, w, h = get_window_bbox(hwnd)
+    # The new click_at function takes coordinates relative to the window, not the screen
+    click_x = w // 2
+    click_y = h // 2 - 10
+    click_at(hwnd, click_x, click_y)
     print(f"Clicked in the middle of the window at ({click_x}, {click_y})")
 
 def click_on_blighted_bush():
-    window_title = "Miscrits"  # Change this to your window's title
-    frame = capture_window(window_title)
-    x, y, w, h = get_window_bbox(window_title)
+    window_title = "Miscrits"
+    hwnd = get_window_handle(window_title)
+    x, y, w, h = get_window_bbox(hwnd)
+    # The new click_at function takes coordinates relative to the window, not the screen
     click_x = x + 660
     click_y = y + 280
-    click_at(click_x, click_y)
+    click_at(hwnd, click_x, click_y)
     print(f"Clicked in the middle of the window at ({click_x}, {click_y})")
 
-def capture_chance():
-    window_title = "Miscrits"
-    frame = capture_window(window_title)
-    x, y, w, h = get_window_bbox(window_title)
+def capture_chance(hwnd, reader):
+    """
+    Captures the "capture chance" text from a background window.
 
-    # Define the box region (example: center 100x40 box)
-    box_w, box_h = 47, 25
-    box_x = x + 620
-    box_y = y + 165
+    Args:
+        hwnd: The handle of the target window.
+        reader: The initialized easyocr.Reader object.
+    """
+    # 1. Capture the entire window content without bringing it to the front
+    frame = capture_window(hwnd) # This is our background-safe capture function
 
-    # Capture the box region
-    box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
-    box_img_cv = cv2.cvtColor(np.array(box_img), cv2.COLOR_RGB2BGR)
+    # 2. Define the Region of Interest (ROI) relative to the window's top-left corner
+    # Original coordinates were relative to the screen (x + 620, y + 165).
+    # Now they are relative to the window frame, which is just (620, 165).
+    roi_x, roi_y = 620, 165
+    roi_w, roi_h = 47, 25
 
-    # OCR using easyocr
-    reader = easyocr.Reader(['en'], gpu=False)
+    # 3. Crop the captured frame to get only the box we need
+    # Using numpy slicing: array[y:y+h, x:x+w]
+    box_img_cv = frame[roi_y : roi_y + roi_h, roi_x : roi_x + roi_w]
+
+    # 4. Perform OCR on the cropped region
+    # The reader is passed in for efficiency
     result = reader.readtext(box_img_cv, detail=0)
     text = result[0] if result else ""
     print("OCR Result:", text.strip())
 
-    # # Visualize the OCR box on the captured frame
-    # vis = frame.copy()
-    # cv2.rectangle(vis, (box_x - x, box_y - y), (box_x - x + box_w, box_y - y + box_h), (0, 255, 0), 2)
-    # cv2.imshow("OCR Box Visualization", vis)
+    # Optional: Visualize the cropped box to make sure it's correct
+    # cv2.imshow("Cropped OCR Box", box_img_cv)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
@@ -297,13 +334,31 @@ def capture_him():
     print("next page")
     capture_attack()
 
-def take_screenshot():
-    screenshot = pyautogui.screenshot(region=region)
+def take_screenshot(hwnd):
+    """
+    Captures a screenshot of a background window and saves it to a file.
+
+    Args:
+        hwnd: The handle of the target window.
+    """
+    # 1. Capture the full window in the background using our custom function.
+    # This returns an OpenCV image (NumPy array).
+    frame = capture_window(hwnd)
+
+    # 2. Create the filename (this logic remains the same)
     now = datetime.now()
-    filename = f"screenshots/screenshot_{now.strftime('%d-%m-%y-%H-%M')}.png"
-    screenshot.save(filename)
-    print(f"Saved {filename}")
     
+    # Create the screenshots directory if it doesn't exist
+    if not os.path.exists("screenshots"):
+        os.makedirs("screenshots")
+        
+    filename = f"screenshots/screenshot_{now.strftime('%d-%m-%y-%H-%M-%S')}.png"
+
+    # 3. Save the captured frame using OpenCV's imwrite function
+    cv2.imwrite(filename, frame)
+    print(f"Saved background screenshot: {filename}")
+
+
 def train_individual(miscrit_no, bonus):
     window_title = "Miscrits"
     x, y, w, h = get_window_bbox(window_title)
@@ -381,6 +436,46 @@ def train_individual(miscrit_no, bonus):
         click_at(click_x, click_y)
         time.sleep(4)
 
+    #checking for evolution! (at level 10 20 30)
+    # Check for evolution with OCR (at level 10, 20, 30)
+    window_title = "Miscrits"
+    frame = capture_window(window_title)
+    x, y, w, h = get_window_bbox(window_title)
+
+    # Define OCR box for evolution text
+    box_w, box_h = 158, 33
+    box_x = x + 385
+    box_y = y + 100
+
+    # Capture the evolution text box region
+    evolution_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
+    evolution_img_cv = cv2.cvtColor(np.array(evolution_img), cv2.COLOR_RGB2BGR)
+
+    # OCR using easyocr
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(evolution_img_cv, detail=0)
+    evolution_text = result[0] if result else ""
+    # print("Evolution OCR Result:", evolution_text.strip())
+
+    # If evolution is detected, click to proceed
+    if "evolvedl" in evolution_text.strip().lower():
+        print("Evolution detected!")
+        # Click at the specified coordinates for evolution
+        click_x = x + w/2
+        click_y = y + h/2
+        click_at(click_x, click_y)
+        time.sleep(0.25)  # Wait for the evolution animation to finish
+        click_x = x + 644
+        click_y = y + 611
+        click_at(click_x, click_y)
+        print(f"Clicked at ({click_x}, {click_y}) to proceed with evolution")
+        time.sleep(2)  # Wait for animation or next screen
+
+    click_x = x + w/2
+    click_y = y + h/2
+    click_at(click_x, click_y)
+
+    time.sleep(3)
 
     if bonus:
         click_x = x + 570
@@ -432,47 +527,6 @@ def train_individual(miscrit_no, bonus):
         click_y = y + 510
         click_at(click_x, click_y)
 
-    #checking for evolution! (at level 10 20 30)
-    # Check for evolution with OCR (at level 10, 20, 30)
-    window_title = "Miscrits"
-    frame = capture_window(window_title)
-    x, y, w, h = get_window_bbox(window_title)
-
-    # Define OCR box for evolution text
-    box_w, box_h = 158, 33
-    box_x = x + 385
-    box_y = y + 100
-
-    # Capture the evolution text box region
-    evolution_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
-    evolution_img_cv = cv2.cvtColor(np.array(evolution_img), cv2.COLOR_RGB2BGR)
-
-    # OCR using easyocr
-    reader = easyocr.Reader(['en'], gpu=False)
-    result = reader.readtext(evolution_img_cv, detail=0)
-    evolution_text = result[0] if result else ""
-    # print("Evolution OCR Result:", evolution_text.strip())
-
-    # If evolution is detected, click to proceed
-    if "evolvedl" in evolution_text.strip().lower():
-        print("Evolution detected!")
-        # Click at the specified coordinates for evolution
-        click_x = x + w/2
-        click_y = y + h/2
-        click_at(click_x, click_y)
-        time.sleep(0.25)  # Wait for the evolution animation to finish
-        click_x = x + 644
-        click_y = y + 611
-        click_at(click_x, click_y)
-        print(f"Clicked at ({click_x}, {click_y}) to proceed with evolution")
-        time.sleep(2)  # Wait for animation or next screen
-
-    click_x = x + w/2
-    click_y = y + h/2
-    click_at(click_x, click_y)
-
-    time.sleep(3)
-
 def check_for_rank_up():
         window_title = "Miscrits"
         x, y, w, h = get_window_bbox(window_title)
@@ -502,9 +556,6 @@ def check_for_rank_up():
             click_at(click_x, click_y)
             print(f"Clicked at ({click_x}, {click_y}) because 'Rank Up' was detected")
 
-            check_for_rank_up()
-
-
 def train():
     window_title = "Miscrits"
     x, y, w, h = get_window_bbox(window_title)
@@ -527,14 +578,14 @@ def train():
     click_y = y + 60
     click_at(click_x, click_y)
     
-    time.sleep(3)
+
     # Check for rank up notification
     check_for_rank_up()
     
 
     
 def check_for_quest_completion():
-
+    
     window_title = "Miscrits"
     x, y, w, h = get_window_bbox(window_title)
     box_w, box_h = 102, 27
@@ -598,8 +649,23 @@ def click_on_red_gem():
 if __name__ == "__main__":
     
     time.sleep(2)   
+
+    # Initialize the window title and OCR reader
+    window_title = "Miscrits"  # The title of the game window
+    try:
+        hwnd = get_window_handle(window_title) # Get the handle once
+        reader = easyocr.Reader(['en'], gpu=False) # Initialize the reader once
+    except Exception as e:
+        print(e)
+        exit()
+
     region = (1280, 0, 1280, 1440)
     screenshot_count = 0
+
+    print("Initializing OCR Engine...")
+    reader = easyocr.Reader(['en'], gpu=False)
+    print("Initialization complete.")
+
     for iter in range(200): 
         
         if iter % 10 == 0 and iter != 0:
@@ -615,7 +681,7 @@ if __name__ == "__main__":
         time.sleep(7)
         take_screenshot()
         screenshot_count += 1    # Take a screenshot every iteration
-        chance_text = capture_chance() 
+        chance_text = capture_chance(hwnd, reader) 
         if any(c.isalpha() for c in chance_text):
             chance_text = "100"
         try:
