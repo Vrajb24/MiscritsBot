@@ -5,15 +5,15 @@ import pyautogui
 region = (1280, 0, 1280, 1440)
   # Change these values as needed
 
-screenshot_count = 0
+screenshot_count = 6
 
 try:
     while True:
         screenshot = pyautogui.screenshot(region=region)
-        filename = f"screenshots/screenshot_{screenshot_count}.png"
+        filename = f"BlightedBush/element_image_{screenshot_count:04d}.png"
         screenshot.save(filename)
         print(f"Saved {filename}")
         screenshot_count += 1
-        time.sleep(30)
+        time.sleep(1)
 except KeyboardInterrupt:
     print("Stopped by user.")
