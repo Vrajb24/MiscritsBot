@@ -5,3 +5,8 @@ pyautogui
 easyocr
 ultralytics
 keyboard
+time
+re
+datetime
+paddleocr
+pywin32
