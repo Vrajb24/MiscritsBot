@@ -45,13 +45,7 @@ reader = easyocr.Reader(['en'], gpu=False)
 
 def box_ocr(x_relative, y_relative, box_w, box_h, visualize=False, purpose=""):
     """
-    Perform OCR on a specific region of the Miscrits window.
-    
-    Parameters:
-    - x_relative, y_relative: Coordinates relative to the window's top-left corner
-    - box_w, box_h: Width and height of the OCR box
-    - visualize: Whether to show debug visualization
-    - purpose: Description for logging
+    Same arguments / return as before – see previous docstring.
     """
     import cv2, pyautogui, numpy as np
     from ctypes import windll
@@ -61,17 +55,15 @@ def box_ocr(x_relative, y_relative, box_w, box_h, visualize=False, purpose=""):
 
     # ── 1. window position + DPI scaling ──────────────────────────────
     window_title = "Miscrits"
-    bbox = get_window_bbox(window_title)
-    x, y = bbox[0], bbox[1]  # Only extract x, y coordinates
+    x, y, w, h = get_window_bbox(window_title)
 
     try:
         hwnd   = win32gui.FindWindow(None, window_title)
         dpi    = windll.user32.GetDpiForWindow(hwnd)
-        scale  = dpi / 96.0
-        print(f"DPI: {dpi}, scale factor: {scale}")
+        # scale  = dpi / 96.0
+        scale = 1.0
     except Exception:
         scale  = 1.0
-        print("Failed to get DPI, using default scale=1.0")
 
     bx   = int(x + x_relative * scale)
     by   = int(y + y_relative * scale)
@@ -99,21 +91,18 @@ def box_ocr(x_relative, y_relative, box_w, box_h, visualize=False, purpose=""):
     for cand in (g_big, bin_img):
         text = reader.readtext(cand,
                                detail=0,
-                               allowlist="0123456789%")
+                               allowlist="0123456789%/")
+        if text:                      # got something!
+            text = text[0].strip()
+            break
+    else:
+        text = ""
+
+    print("► OCR:", text)
+
+    # ── 5. optional visualisation ────────────────────────────────────
     if visualize:
         frame = capture_window(window_title)
-        # Draw the box on the window frame
-        cv2.rectangle(frame,
-                      (int(bx - x), int(by - y)),
-                      (int(bx - x + bw), int(by - y + bh)),
-                      (0, 255, 0), 1)
-        # Print box position for debugging
-        print(f"OCR box window-relative: ({int(bx - x)}, {int(by - y)}), size: {bw}x{bh}")
-        cv2.imshow("window ROI", frame)
-        cv2.imshow("gray ×4",  g_big)
-        cv2.imshow("binary",   bin_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
         cv2.rectangle(frame,
                       (int(bx - x), int(by - y)),
                       (int(bx - x + bw), int(by - y + bh)),
@@ -336,7 +325,7 @@ def click_on_element(window_title, template_folder, threshold=0.8, visualize=Fal
     
 def capture_chance():
 
-    text = box_ocr(610, 165, 65, 30, visualize=False, purpose="Capture Chance")
+    text = box_ocr(1374, 379, 153, 56, visualize=False, purpose="Capture Chance")
 
     return text.strip()
 
@@ -345,9 +334,8 @@ def rarity_check():
     window_title = "Miscrits" 
     frame = capture_window(window_title)
     x, y, w, h = get_window_bbox(window_title)
-    # Original values
-    px = 845
-    py = 65
+    px = 1945
+    py = 136
     color = frame[py, px]  # BGR format
     # print(f"Pixel color at ({px},{py}): {color}")
     # # Visualize the pixel location on the captured frame
@@ -381,9 +369,9 @@ def health_check():
     x, y, w, h = get_window_bbox(window_title)
 
     # Define the box region (example: center 100x40 box)
-    box_w, box_h = 60, 20
-    box_x = x + 980
-    box_y = y + 81
+    box_w, box_h = 125, 55
+    box_x = x + 2280
+    box_y = y + 165
 
     # Capture the box region
     box_img = pyautogui.screenshot(region=(box_x, box_y, box_w, box_h))
@@ -443,23 +431,18 @@ def attack(number):
     window_title = "Miscrits" 
     frame = capture_window(window_title)
     x, y, w, h = get_window_bbox(window_title)
-    
+    click_y = y + 1665
     if number == 1:
-        click_x = x + 402
-        click_y = y + 654
+        click_x = x + 680
     elif number == 2:
-        click_x = x + 580
-        click_y = y + 654
+        click_x = x + 1196
     elif number == 3:
-        click_x = x + 780
-        click_y = y + 654
+        click_x = x + 1721
     elif number == 4:
-        click_x = x + 980
-        click_y = y + 654
+        click_x = x + 2251
     else:
         # Default fallback position
-        click_x = x + 402
-        click_y = y + 654
+        click_x = x + 680
     click_at(click_x, click_y)
     print(f"Pressed at ({click_x}, {click_y})")
 
@@ -467,30 +450,18 @@ def attack(number):
 def finish_him():
     attack(1)  # Call the attack function with number 1
     
-    time.sleep(10)
-    # Detect color at (615, 503) relative to the top-left corner of the window
-    window_title = "Miscrits"
-    frame = capture_window(window_title)
-    x, y, w, h = get_window_bbox(window_title)
-    px = 615
-    py = 600
-    color = frame[py, px]  # BGR format
-    print(f"Pixel color at ({px},{py}): {color}")
-    #  # Visualize the pixel location where color is picked
-    # vis = frame.copy()
-    # cv2.circle(vis, (px, py), 5, (0, 0, 255), -1)
-    # cv2.imshow("Finish Him Pixel Visualization", vis)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    if np.array_equal(color, np.array([254, 254, 254])):
-        click_at(px + x, py + y)  # Click at the pixel location
-        # # Visualize the click location
-        # frame_vis = frame.copy()
-        # cv2.circle(frame_vis, (click_x, click_y), 10, (0, 255, 0), 2)
-        # cv2.imshow("Click Location Visualization", frame_vis)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        print(f"Clicked at ({px + x}, {py + y}) due to color match [254 254 254]")
+    time.sleep(5)
+    
+    FightEnded = click_on_element(
+        window_title="Miscrits",
+        template_folder="Elements/ContinueButton",
+        threshold=0.8,
+        visualize=False,
+        click_duration=0,
+        y_offset=0
+    )
+    if FightEnded:
+        print("Clicked on Continue button after fight ended")
         return True
     else:
         finish_him()
@@ -515,14 +486,74 @@ def capture_attack():
         (rarity != "legendary" and chance_value > 90) 
     ):
         time.sleep(4)
-        # window_title = "Miscrits" 
-        # frame = capture_window(window_title)
-        # x, y, w, h = get_window_bbox(window_title)
-        # click_x = x + 640
-        # click_y = y + 170
-        # click_at(click_x, click_y)
+        
 
-        click_on_element(
+        captured=click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/CaptureButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        if captured:
+            print("Clicked on Capture button")
+
+        time.sleep(10)
+
+        Okayed=click_on_element(
+            window_title="Miscrits",   
+            template_folder="Elements/OkayButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        if Okayed:
+            print("Clicked on Okay button after capture")
+
+        else:
+
+            click_on_element(
+                window_title="Miscrits",
+                template_folder="Elements/PrevMenuPage",
+                threshold=0.8,
+                visualize=False,
+                click_duration=0,
+                y_offset=0
+            )
+
+            time.sleep(1)
+
+            click_on_element(
+                window_title="Miscrits",
+                template_folder="Elements/PrevMenuPage",
+                threshold=0.8,
+                visualize=False,
+                click_duration=0,
+                y_offset=0
+            )
+
+            finish_him()
+            return
+
+        time.sleep(5)  # Wait for the attack animation to finish
+        
+        continued=click_on_element(
+            window_title="Miscrits",   
+            template_folder="Elements/ContinueButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        if continued:
+            print("Clicked on Continue button after capture")
+
+        time.sleep(3)
+
+        Okayed = click_on_element(
             window_title="Miscrits",
             template_folder="Elements/OkayButton",
             threshold=0.8,
@@ -530,112 +561,50 @@ def capture_attack():
             click_duration=0,
             y_offset=0
         )
+        if Okayed:
+            print("Clicked on Okay button on rankup")
 
-        time.sleep(2)
+        time.sleep(3)
 
-        click_on_element(
-            window_title="Miscrits",   
-            template_folder="Elements/CaptureButton",
+        Okayed = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/OkayButton",
             threshold=0.8,
             visualize=False,
             click_duration=0,
             y_offset=0
         )
+        if Okayed:
+            print("Clicked on Okay button on Qest completion")
 
-        time.sleep(10)  # Wait for the attack animation to finish
-        
-        window_title = "Miscrits"
-        frame = capture_window(window_title)
-        x, y, w, h = get_window_bbox(window_title)
-        px = 615 + 30
-        py = 600 - 163
-        color = frame[py, px]  # BGR format
-        print(f"Okay Button color at ({px},{py}): {color}")
+        time.sleep(3)
 
+        kept = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/KeepButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        if kept:    
+            print("Clicked on Keep button after capture")
 
-        if np.array_equal(color, np.array([21, 111, 205])):
+        time.sleep(3)
 
-            Okayed = click_on_element(
-                window_title="Miscrits",   
-                template_folder="Elements/OkayButton",
-                threshold=0.8,
-                visualize=False,
-                click_duration=0,
-                y_offset=0
-            )
-            if Okayed:
-                print("Clicked on Okay button")
+        healed = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/HealButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        if healed:
+            print("Clicked on Heal button after capture")
 
-            # window_title = "Miscrits" 
-            # frame = capture_window(window_title)
-            # x, y, w, h = get_window_bbox(window_title)
-            # click_x = x + 615 + 30
-            # click_y = y + 600 - 163
-            # print(f"Clicked at ({click_x}, {click_y}) to press Okay")
-            # click_at(click_x, click_y)
-            
-            time.sleep(7)
-            continued=click_on_element(
-                window_title="Miscrits",   
-                template_folder="Elements/ContinueButton",
-                threshold=0.8,
-                visualize=False,
-                click_duration=0,
-                y_offset=0
-            )
-            if continued:
-                print("Clicked on Continue button")
-            # window_title = "Miscrits" 
-            # frame = capture_window(window_title)
-            # x, y, w, h = get_window_bbox(window_title)
-            # click_x = x + 615
-            # click_y = y + 600
-            # print(f"Clicked at ({click_x}, {click_y}) to press Continue")
-            # click_at(click_x, click_y)
-
-            time.sleep(7)
-
-            kept=click_on_element(
-                window_title="Miscrits",
-                template_folder="Elements/KeepButton",
-                threshold=0.8,
-                visualize=False,
-                click_duration=0,
-                y_offset=0
-            )
-            if kept:
-                print("Clicked on Keep button")
-
-            # window_title = "Miscrits" 
-            # frame = capture_window(window_title)
-            # x, y, w, h = get_window_bbox(window_title)
-            # click_x = x + 580
-            # click_y = y + 475
-            # print(f"Clicked at ({click_x}, {click_y}) to press Keep")
-            # click_at(click_x, click_y)
-            return
-        
-        else:
-            window_title = "Miscrits"
-            x, y, w, h = get_window_bbox(window_title)
-            click_x = x + 1100 - 918
-            click_y = y + 640
-            click_at(click_x, click_y)
-            print("prev page")
-            time.sleep(2)
-            click_at(click_x, click_y)    
-            print("prev page")
-            time.sleep(2)
-            finish_him()
-    
     else:
-        window_title = "Miscrits" 
-        frame = capture_window(window_title)
-        x, y, w, h = get_window_bbox(window_title)
-        click_x = x + 402 + 200
-        click_y = y + 644
-        click_at(click_x, click_y)
-        print(f"Pressed at ({click_x}, {click_y})")
+        attack(2)
         capture_attack()
 
    
@@ -680,15 +649,15 @@ def train_individual(miscrit_no, bonus):
     window_title = "Miscrits"
     print(f"Training Miscrit {miscrit_no} with bonus: {bonus}")
     x, y, w, h = get_window_bbox(window_title)
-    click_x = x + 390
+    click_x = x + 650
     if miscrit_no == 1:
-        click_y = y + 150
+        click_y = y + 395
     elif miscrit_no == 2:
-        click_y = y + 200
+        click_y = y + 515
     elif miscrit_no == 3:
-        click_y = y + 250
+        click_y = y + 635
     elif miscrit_no == 4:
-        click_y = y + 300
+        click_y = y + 755
     else:
         raise ValueError("miscrit_no must be 1, 2, 3, or 4")
     click_at(click_x, click_y)
@@ -761,8 +730,17 @@ def train_individual(miscrit_no, bonus):
             y_offset=0
         )
 
-       
-
+    time.sleep(3)
+    okayed=click_on_element(
+        window_title="Miscrits",
+        template_folder="Elements/OkayButton",
+        threshold=0.8,
+        visualize=False,
+        click_duration=0,
+        y_offset=0
+    )
+    if okayed:
+        print("Clicked on Okay button after Evolve")
         
 
     time.sleep(7)
@@ -826,6 +804,8 @@ def train_individual(miscrit_no, bonus):
         )
 
     time.sleep(3)
+
+    check_for_rank_up()
 
 def check_for_rank_up():
         
@@ -901,7 +881,7 @@ def check_for_quest_completion():
 
     click_on_element(
         window_title="Miscrits", 
-        template_folder="Elements/QuestCompletion",
+        template_folder="Elements/OkayButton",
         threshold=0.8,
         visualize=False,
         click_duration=0,
@@ -926,7 +906,7 @@ def heal():
 
 
 
-    time.sleep(2)
+    time.sleep(3)
 
     click_on_element(
         window_title="Miscrits", 
@@ -977,7 +957,7 @@ if __name__ == "__main__":
     time.sleep(2)   
 
     # Define the region for screenshots (left, top, width, height)
-    region = (1280, 0, 1280, 1440)
+    region = (0, 0, 2880, 1800)
     for iter in range(200): 
 
         check_for_quest_completion()  
@@ -986,7 +966,7 @@ if __name__ == "__main__":
         
         # Check for quest completion and train every 10 iterations
 
-        if iter % 10 == 0:
+        if iter % 5 == 0 and iter != 0:
             train()  
         
         # Heal every 50 iterations
@@ -997,7 +977,7 @@ if __name__ == "__main__":
         # click_on_target("blighted_bush")
         element_clicked=click_on_element(
         window_title="Miscrits", 
-        template_folder="Elements/SandCastle",
+        template_folder="Elements/IcyCrate",
         threshold=0.8,
         visualize=False,
         click_duration=0,
@@ -1017,4 +997,4 @@ if __name__ == "__main__":
 
         attack_strat(chance_text)  # Execute the attack strategy based on the chance and rarity
 
-        time.sleep(5)  # Wait before the next iteration  
+        time.sleep(2)  # Wait before the next iteration  
