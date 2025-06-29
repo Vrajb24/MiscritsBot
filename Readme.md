@@ -6,19 +6,23 @@ Welcome to the **Miscrits Auto-Player Bot**! This Python-based automation tool i
 
 ## ✨ Features
 
-- **Automatic Gameplay**: Plays Miscrits for you, battling and leveling up your team.
-- **Resource Gathering**: Collects gold and potions as you play.
-- **Smart Capturing**: Automatically captures any Miscrits with class A and above, including all legendary Miscrits regardless of class.
-- **Elemental Search**: Choose the element you want to search for, and the bot will focus on that area.
-- **Legendary Hunter**: Optimized for capturing legendary Miscrits, making your collection grow faster!
+-   **Automatic Gameplay**: Plays Miscrits for you, battling and leveling up your team.
+-   **Resource Gathering**: Collects gold and potions as you play.
+-   **Smart Capturing**: Employs a strategic approach to capture Miscrits based on rarity and capture chance.
+-   **Elemental Search**: Choose the element you want to search for, and the bot will focus on that area by clicking on corresponding environmental objects.
+-   **Legendary Hunter**: Optimized for capturing legendary Miscrits, making your collection grow faster!
+-   **Automated Training**: Automatically trains your Miscrits, including applying statistical bonuses.
+-   **Health and Rarity Detection**: The bot can check the health and rarity of Miscrits to make strategic decisions.
+-   **Flexible Attack Strategies**: The bot uses different attack strategies based on the Miscrit's rarity and capture chance.
+-   **Template Matching**: Uses image recognition to find and interact with in-game elements like buttons and items.
 
 ---
 
 ## 🛠️ Requirements
 
-- Python 3.7+
-- `pip` (Python package manager)
-- Run the following command to install required packages:
+-   Python 3.7+
+-   `pip` (Python package manager)
+-   Run the following command to install required packages:
     ```bash
     pip install -r requirements.txt
     ```
@@ -27,50 +31,54 @@ Welcome to the **Miscrits Auto-Player Bot**! This Python-based automation tool i
 
 ## 🚀 Getting Started
 
-1. **Clone this repository:**
+1.  **Clone this repository:**
     ```bash
-    git clone https://github.com/yourusername/miscrits-auto-player-bot.git
+    git clone [https://github.com/yourusername/miscrits-auto-player-bot.git](https://github.com/yourusername/miscrits-auto-player-bot.git)
     cd miscrits-auto-player-bot
     ```
 
-2. **Install dependencies:**
+2.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3. **Download the appropriate WebDriver** for your browser and place it in your PATH.
+3.  **Configure your settings:**
+    -   The bot is configured to work with the "Miscrits" window title. Ensure your game window has this title.
+    -   Place your template images for elements you want the bot to click on inside the `Elements` directory (e.g., `Elements/IcyCrate`, `Elements/SandCastle`).
 
-4. **Configure your settings:**
-    - Open `config.py` and set your Miscrits account credentials and preferred element.
-
-5. **Run the bot:**
+4.  **Run the bot:**
     ```bash
-    python miscrits_bot.py
+    python Yoga_detector.py
+    ```
+    or
+    ```bash
+    python Detector.py
     ```
 
 ---
 
 ## ⚙️ Configuration
 
-Edit `config.py` to set:
-- Your Miscrits username and password
-- The element you want to search for
-- Capture preferences (optional)
+-   The main configuration for the bot, such as window title and template paths, can be found directly within the Python scripts (`Detector.py`, `Yoga_detector.py`).
+-   You can adjust the `threshold` for template matching in the `click_on_element` function calls to make the image recognition more or less strict.
+-   The main loop in each script can be modified to change the frequency of actions like training and healing.
 
 ---
 
 ## 📝 Notes
 
-- **Use responsibly!** This bot is for educational purposes. Excessive automation may violate Miscrits' terms of service.
-- **No guarantees:** Use at your own risk. The bot may require updates if the game changes.
+-   **Use responsibly!** This bot is for educational purposes. Excessive automation may violate Miscrits' terms of service.
+-   **No guarantees:** Use at your own risk. The bot may require updates if the game's UI changes.
+-   This bot interacts with the screen using `pyautogui` and is best suited for a desktop environment.
 
 ---
 
 ## 💡 Tips
 
-- Start the script in the area of the element you want to search.
-- Monitor the bot occasionally to ensure smooth operation.
-- Customize capture logic in `capture.py` for advanced strategies.
+-   Start the script while the Miscrits game window is open and visible.
+-   Monitor the bot occasionally to ensure smooth operation, especially when running for the first time.
+-   The bot takes screenshots of its activity, which can be found in the `screenshots` folder. This is useful for debugging.
+-   Create high-quality template images for the best results with `click_on_element`.
 
 ---
 
@@ -89,3 +97,4 @@ This project is licensed under the MIT License.
 ## 🏆 Happy Hunting!
 
 Level up, gather resources, and expand your legendary collection with ease! 🌟
+
