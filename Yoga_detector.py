@@ -472,15 +472,16 @@ def capture_attack():
     health = health_check()
     chance = capture_chance()
     rarity = rarity_check()
-    
     # Extract digits from chance and validate
     chance_digits = ''.join(filter(str.isdigit, chance))
     if not chance_digits:  # If no digits found, set default value
         chance_value = 0
         print(f"No digits found in chance '{chance}', using default value 0")
+    elif int(chance_digits) > 100:  # Handle values exceeding 100
+        chance_value = 0
+        print(f"Chance value exceeded 100: '{chance_digits}', using default value 0")
     else:
         chance_value = int(chance_digits)
-    
     if (
         (rarity == "legendary" and chance_value > 85) or
         (rarity != "legendary" and chance_value > 90) 
@@ -662,7 +663,7 @@ def train_individual(miscrit_no, bonus):
         raise ValueError("miscrit_no must be 1, 2, 3, or 4")
     click_at(click_x, click_y)
 
-    time.sleep(2)
+    time.sleep(3)
 
     window_title = "Miscrits"
     frame = capture_window(window_title)
@@ -683,7 +684,7 @@ def train_individual(miscrit_no, bonus):
     else:
         print("Miscrit:", miscrit_no, "Crit training")
 
-    time.sleep(2)
+    time.sleep(3)
 
     if bonus:
         
@@ -696,7 +697,7 @@ def train_individual(miscrit_no, bonus):
             y_offset=0
         
 )
-        time.sleep(1)
+        time.sleep(2)
 
         click_on_element(
             window_title="Miscrits",
@@ -772,7 +773,7 @@ def train_individual(miscrit_no, bonus):
             click_duration=0,
             y_offset=0
         )
-
+        time.sleep(3)
         click_on_element(
             window_title="Miscrits",
             template_folder="Elements/ContinueButton",
@@ -781,7 +782,7 @@ def train_individual(miscrit_no, bonus):
             click_duration=0,
             y_offset=0
         )
-
+    time.sleep(3)
     Evolved=click_on_element(
         window_title="Miscrits",
         template_folder="Elements/EvolveDiag",
@@ -793,7 +794,7 @@ def train_individual(miscrit_no, bonus):
 
     if Evolved:
         print("Evolved ability detected, clicking okay")
-
+        time.sleep(2)
         click_on_element(
             window_title="Miscrits",
             template_folder="Elements/OkayButton",
@@ -852,7 +853,7 @@ def train():
     time.sleep(1)
     train_individual(2, True)   
     time.sleep(1)
-    train_individual(3, True)
+    train_individual(3, False)
     time.sleep(1)
     train_individual(4, False)
     time.sleep(1)
@@ -879,7 +880,7 @@ def train():
 def check_for_quest_completion():
     print("Checking for quest completion")
 
-    click_on_element(
+    quest=click_on_element(
         window_title="Miscrits", 
         template_folder="Elements/OkayButton",
         threshold=0.8,
@@ -888,6 +889,11 @@ def check_for_quest_completion():
         y_offset=0
     )
 
+    if quest:
+        check_for_quest_completion()
+        print("Quest completed, checking for another quest...")
+    else:
+        return
     time.sleep(2)
 
         
@@ -932,7 +938,7 @@ def attack_strat(chance_text):
     if 0 <= chance_value <= 100:
         rarity = rarity_check().lower()
         if (
-            (rarity == "common" and chance_value <= 28 ) or
+            (rarity == "common" and chance_value <= 30 ) or
             (rarity == "rare" and chance_value <= 20) or
             (rarity == "epic" and chance_value <= 10) or
             (rarity == "exotic" and chance_value <= 10) or
@@ -966,7 +972,7 @@ if __name__ == "__main__":
         
         # Check for quest completion and train every 10 iterations
 
-        if iter % 5 == 0 and iter != 0:
+        if iter % 2 == 0 and iter != 0:
             train()  
         
         # Heal every 50 iterations
@@ -977,12 +983,14 @@ if __name__ == "__main__":
         # click_on_target("blighted_bush")
         element_clicked=click_on_element(
         window_title="Miscrits", 
-        template_folder="Elements/IcyCrate",
+        template_folder="Elements/RedPalmTreeBeach",
         threshold=0.8,
         visualize=False,
         click_duration=0,
-        y_offset=20
+        y_offset=0
         )
+
+        # click_at(1501, 845)  # Click on the Icy Crate at the specified coordinates
         
 
 
