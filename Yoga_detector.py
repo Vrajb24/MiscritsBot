@@ -16,7 +16,7 @@ from paddleocr import PaddleOCR
 
 def click_at(click_x, click_y, hold_time=0.25):
     pyautogui.mouseDown(click_x, click_y)
-    pyautogui.sleep(hold_time)
+    pyautogui.sleep(hold_time)  
     pyautogui.mouseUp(click_x, click_y)
 
 
@@ -394,11 +394,10 @@ def health_check():
         return None
     
 
-def take_screenshot():
+def take_screenshot(filename):
     print("Taking screenshot...") 
     screenshot = pyautogui.screenshot(region=region)
     now = datetime.now()
-    filename = f"screenshots/screenshot_{now.strftime('%d-%m-%y-%H-%M')}.png"
     screenshot.save(filename)
     print(f"Saved {filename}")
 
@@ -451,6 +450,14 @@ def finish_him():
     attack(1)  # Call the attack function with number 1
     
     time.sleep(5)
+
+    ReadyToTrain = detect_element(
+        window_title="Miscrits",
+        template_folder="Elements/ReadyToTrain",
+        threshold=0.8,
+        visualize=False
+    )
+
     
     FightEnded = click_on_element(
         window_title="Miscrits",
@@ -460,8 +467,14 @@ def finish_him():
         click_duration=0,
         y_offset=0
     )
+    
+    time.sleep(3)
+
     if FightEnded:
         print("Clicked on Continue button after fight ended")
+        if ReadyToTrain:
+            print("Ready to train detected, clicking on Train button")
+            train()
         return True
     else:
         finish_him()
@@ -483,8 +496,8 @@ def capture_attack():
     else:
         chance_value = int(chance_digits)
     if (
-        (rarity == "legendary" and chance_value > 85) or
-        (rarity != "legendary" and chance_value > 90) 
+        (rarity == "legendary" and chance_value > 80) or
+        (rarity != "legendary" and chance_value > 85) 
     ):
         time.sleep(4)
         
@@ -595,7 +608,7 @@ def capture_attack():
 
         healed = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/HealButton",
+            template_folder="Elements/HealNowButton",
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -603,13 +616,26 @@ def capture_attack():
         )
         if healed:
             print("Clicked on Heal button after capture")
+            time.sleep(2)
+            click_on_element(
+                window_title="Miscrits",
+                template_folder="Elements/YesButton",
+                threshold=0.8,
+                visualize=False,
+                click_duration=0,
+                y_offset=0
+            )
 
     else:
         attack(2)
         capture_attack()
 
    
-def capture_him():
+def capture_him(rarity):
+
+    now = datetime.now()
+    filename = f"captureshots/{rarity}_{now.strftime('%d-%m-%y-%H-%M')}.png"
+    take_screenshot(filename)
     # Click at (1100, 640) relative to the top-left corner of the window
     # window_title = "Miscrits"
     # x, y, w, h = get_window_bbox(window_title)
@@ -853,9 +879,9 @@ def train():
     time.sleep(1)
     train_individual(2, True)   
     time.sleep(1)
-    train_individual(3, False)
+    train_individual(3, True)
     time.sleep(1)
-    train_individual(4, False)
+    train_individual(4, True)
     time.sleep(1)
 
     click_on_element(
@@ -945,7 +971,7 @@ def attack_strat(chance_text):
             (rarity == "legendary")
         ):
             print("capture on!")
-            capture_him()
+            capture_him(rarity=rarity)
             check_for_rank_up()
 
         else:
@@ -954,7 +980,87 @@ def attack_strat(chance_text):
             finish_him()
     else:
         print("Chance not in range 0-100, waiting 20 seconds...")
-        time.sleep(20)
+        
+        click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/ContinueButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        time.sleep(2) 
+
+        click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/OkayButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        time.sleep(2)
+
+        click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/YesButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        time.sleep(2)
+
+        Retry = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/RetryButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        if Retry:
+            time.sleep(10)
+
+            Retry = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/RetryButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        if Retry:
+            time.sleep(10)   
+
+        Account = click_on_element(
+            window_title="Miscrits",
+            template_folder="Elements/AccountButton",
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+
+        if Account or Retry:
+            time.sleep(15)
+            for step in range(10):
+                click_on_element(
+                    window_title="Miscrits",
+                    template_folder=f"Elements/WayToBlightedFlower/{step}",
+                    threshold=0.8,
+                    visualize=False,
+                    click_duration=0,
+                    y_offset=0
+                )
+                time.sleep(5)
+            
+            return
 
     
 if __name__ == "__main__":
@@ -964,7 +1070,7 @@ if __name__ == "__main__":
 
     # Define the region for screenshots (left, top, width, height)
     region = (0, 0, 2880, 1800)
-    for iter in range(200): 
+    for iter in range(2000): 
 
         check_for_quest_completion()  
 
@@ -972,18 +1078,18 @@ if __name__ == "__main__":
         
         # Check for quest completion and train every 10 iterations
 
-        if iter % 2 == 0 and iter != 0:
-            train()  
+        # if iter % 10 == 0 and iter != 0:
+        #     train()  
         
         # Heal every 50 iterations
-        if iter % 50 == 0 and iter != 0:
+        if iter % 20 == 0 and iter != 0:
             heal()
               
         # Click on object to start fight
         # click_on_target("blighted_bush")
         element_clicked=click_on_element(
         window_title="Miscrits", 
-        template_folder="Elements/RedPalmTreeBeach",
+        template_folder="Elements/BlightedFlower",
         threshold=0.8,
         visualize=False,
         click_duration=0,
@@ -997,7 +1103,9 @@ if __name__ == "__main__":
         time.sleep(7)
 
         # Take a screenshot for future reference
-        take_screenshot()
+        now = datetime.now()
+        filename = f"screenshots/screenshot_{now.strftime('%d-%m-%y-%H-%M')}.png"
+        take_screenshot(filename)
 
 
         chance_text = capture_chance() 
