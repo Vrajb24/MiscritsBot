@@ -33,7 +33,7 @@ Welcome to the **Miscrits Auto-Player Bot**! This Python-based automation tool i
 
 1.  **Clone this repository:**
     ```bash
-    git clone [https://github.com/yourusername/miscrits-auto-player-bot.git](https://github.com/yourusername/miscrits-auto-player-bot.git)
+    git clone [[https://github.com/Vrajb24/MiscritsBot.git](https://github.com/Vrajb24/MiscritsBot.git)]
     cd miscrits-auto-player-bot
     ```
 
