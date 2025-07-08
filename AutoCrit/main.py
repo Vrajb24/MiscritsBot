@@ -1,5 +1,5 @@
 import time
-import datetime
+from datetime import datetime
 from utils.checkers import check_for_quest_completion, capture_chance
 from utils.interactors import click_on_element, heal
 from utils.attackStrat import attack_strat
