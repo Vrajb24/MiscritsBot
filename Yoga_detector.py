@@ -550,6 +550,33 @@ def capture_attack():
 
             finish_him()
             return
+        
+        time.sleep(5)
+        # Check pixel color at (773, 766)
+        window_title = "Miscrits"
+        frame = capture_window(window_title)
+        x, y, w, h = get_window_bbox(window_title)
+
+        # Get the pixel color at the specified coordinates
+        pixel_x, pixel_y = 785, 775
+        if pixel_x < frame.shape[1] and pixel_y < frame.shape[0]:
+            color = frame[pixel_y, pixel_x]  # BGR format
+            # Convert hex 323e4c to BGR (76, 62, 50)
+            target_color = np.array([75, 62, 50])
+            print(f"Pixel color at ({pixel_x},{pixel_y}): {color}")
+            # Visualize the pixel location
+            # vis_frame = frame.copy()
+            # cv2.circle(vis_frame, (pixel_x, pixel_y), 10, (0, 0, 255), -1)  # Red circle at the pixel position
+            # cv2.imshow("Pixel Location", vis_frame)
+            # cv2.waitKey(0)  # Wait until a key is pressed (window stays open until manually closed)
+            # cv2.destroyAllWindows()
+            # Check if color matches with small tolerance
+            if np.all(np.abs(color - target_color) < 10):
+                print("Needs Healing")
+                NeedHeal = True
+            else:
+                print("No Healing Needed")
+                NeedHeal = False
 
         time.sleep(5)  # Wait for the attack animation to finish
         
@@ -606,35 +633,36 @@ def capture_attack():
 
         time.sleep(3)
 
-        healed = click_on_element(
-            window_title="Miscrits",
-            template_folder="Elements/HealNowButton",
-            threshold=0.8,
-            visualize=False,
-            click_duration=0,
-            y_offset=0
-        )
-        if healed:
-            print("Clicked on Heal button after capture")
-            time.sleep(2)
-            click_on_element(
+        if NeedHeal:
+            healed = click_on_element(
                 window_title="Miscrits",
-                template_folder="Elements/YesButton",
+                template_folder="Elements/HealNowButton",
                 threshold=0.8,
                 visualize=False,
                 click_duration=0,
                 y_offset=0
             )
+            if healed:
+                print("Clicked on Heal button after capture")
+                time.sleep(2)
+                click_on_element(
+                    window_title="Miscrits",
+                    template_folder="Elements/YesButton",
+                    threshold=0.8,
+                    visualize=False,
+                    click_duration=0,
+                    y_offset=0
+                )
 
     else:
-        attack(2)
+        attack(1)
         capture_attack()
 
    
 def capture_him(rarity):
 
     now = datetime.now()
-    filename = f"captureshots/{rarity}_{now.strftime('%d-%m-%y-%H-%M')}.png"
+    filename = f"captureshots/{rarity}/{rarity}_{now.strftime('%d-%m-%y-%H-%M')}.png"
     take_screenshot(filename)
     # Click at (1100, 640) relative to the top-left corner of the window
     # window_title = "Miscrits"
@@ -658,17 +686,17 @@ def capture_him(rarity):
     )
     print("next page")
 
-    time.sleep(2)
+    # time.sleep(2)
 
-    click_on_element(
-        window_title="Miscrits",
-        template_folder="Elements/NextMenuPage",
-        threshold=0.8,
-        visualize=False,
-        click_duration=0,
-        y_offset=0
-    )
-    print("next page")
+    # click_on_element(
+    #     window_title="Miscrits",
+    #     template_folder="Elements/NextMenuPage",
+    #     threshold=0.8,
+    #     visualize=False,
+    #     click_duration=0,
+    #     y_offset=0
+    # )
+    # print("next page")
 
     capture_attack()
     
@@ -877,11 +905,11 @@ def train():
 
     train_individual(1, False)
     time.sleep(1)
-    train_individual(2, True)   
+    train_individual(2, False)   
     time.sleep(1)
-    train_individual(3, True)
+    train_individual(3, False)
     time.sleep(1)
-    train_individual(4, True)
+    train_individual(4, False)
     time.sleep(1)
 
     click_on_element(
@@ -1049,10 +1077,10 @@ def attack_strat(chance_text):
 
         if Account or Retry:
             time.sleep(15)
-            for step in range(10):
+            for step in range(1):
                 click_on_element(
                     window_title="Miscrits",
-                    template_folder=f"Elements/WayToBlightedFlower/{step}",
+                    template_folder=f"Elements/WhiteClothAttic/Path/{step}",
                     threshold=0.8,
                     visualize=False,
                     click_duration=0,
@@ -1089,7 +1117,7 @@ if __name__ == "__main__":
         # click_on_target("blighted_bush")
         element_clicked=click_on_element(
         window_title="Miscrits", 
-        template_folder="Elements/BlightedFlower",
+        template_folder="Elements/WhiteClothAttic",
         threshold=0.8,
         visualize=False,
         click_duration=0,
