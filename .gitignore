@@ -1,6 +1,10 @@
 # Ignore all files inside the screenshots and screenshots old folders
 screenshots/
-screenshots old/
+captureshots/common/
+captureshots/rare/
+captureshots/epic/
+captureshots/legendary/
+captureshots/exotic/
 
 # Ignore the MiscBot folder
 MiscBot/
