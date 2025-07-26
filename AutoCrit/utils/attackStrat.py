@@ -6,28 +6,45 @@ import numpy as np
 from datetime import datetime
 import time
 from utils.detectors import detect_element
+import config
 
+#############################################
+# ATTACK FUNCTIONS
+#############################################
 
 def attack(number):
-    # Use different click positions based on the attack number
-    window_title = "Miscrits" 
+    # Get window details
+    window_title = "Miscrits"
     frame = capture_window(window_title)
     x, y, w, h = get_window_bbox(window_title)
-    click_y = y + 1665
-    if number == 1:
-        click_x = x + 680
-    elif number == 2:
-        click_x = x + 1196
-    elif number == 3:
-        click_x = x + 1721
-    elif number == 4:
-        click_x = x + 2251
-    else:
-        # Default fallback position
-        click_x = x + 680
-    click_at(click_x, click_y)
-    print(f"Pressed at ({click_x}, {click_y})")
     
+    # Calculate center and relative positions
+    horizontal_center = x + (w // 2)
+    bottom = y + h
+    
+    # Calculate click positions based on the attack number
+    if number == 3:
+        click_x = horizontal_center + (w // 12)
+    elif number == 2:
+        click_x = horizontal_center - (w // 12)
+    elif number == 4:
+        click_x = horizontal_center + (w // 6) + (w // 12)
+    elif number == 1:
+        click_x = horizontal_center - (w // 6) - (w // 12)
+    else:
+        print(f"Invalid attack number: {number}")
+        return
+    
+    # Calculate vertical position
+    click_y = bottom - (h // 10)
+    
+    # Execute the click
+    click_at(click_x, click_y)
+    print(f"Attack {number} executed at ({click_x}, {click_y})")
+    
+#############################################
+# ATTACK STRATEGY
+#############################################
 
 def attack_strat(chance_text):
     if any(c.isalpha() for c in chance_text):
@@ -59,40 +76,43 @@ def attack_strat(chance_text):
         
         click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/ContinueButton",
+            template_folder=config.TEMPLATES["continue_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
             y_offset=0
         )
 
+        # Sleep: 2 seconds ====================================================================================
         time.sleep(2) 
 
         click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/OkayButton",
+            template_folder=config.TEMPLATES["okay_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
             y_offset=0
         )
 
+        # Sleep: 2 seconds ====================================================================================
         time.sleep(2)
 
         click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/YesButton",
+            template_folder=config.TEMPLATES["yes_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
             y_offset=0
         )
 
+        # Sleep: 2 seconds ====================================================================================
         time.sleep(2)
 
         Retry = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/RetryButton",
+            template_folder=config.TEMPLATES["retry_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -100,11 +120,12 @@ def attack_strat(chance_text):
         )
 
         if Retry:
+            # Sleep: 10 seconds ===============================================================================
             time.sleep(10)
 
             Retry = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/RetryButton",
+            template_folder=config.TEMPLATES["retry_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -112,11 +133,12 @@ def attack_strat(chance_text):
         )
 
         if Retry:
+            # Sleep: 10 seconds ===============================================================================
             time.sleep(10)   
 
         Account = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/AccountButton",
+            template_folder=config.TEMPLATES["account_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -124,6 +146,7 @@ def attack_strat(chance_text):
         )
 
         if Account or Retry:
+            # Sleep: 15 seconds ===============================================================================
             time.sleep(15)
             for step in range(1):
                 click_on_element(
@@ -134,18 +157,24 @@ def attack_strat(chance_text):
                     click_duration=0,
                     y_offset=0
                 )
+                # Sleep: 5 seconds ============================================================================
                 time.sleep(5)
             
             return
         
+#############################################
+# COMBAT FUNCTIONS
+#############################################
+
 def finish_him():
     attack(1)  # Call the attack function with number 1
     
+    # Sleep: 5 seconds ========================================================================================
     time.sleep(5)
 
     ReadyToTrain = detect_element(
         window_title="Miscrits",
-        template_folder="Elements/ReadyToTrain",
+        template_folder=config.TEMPLATES["ready_to_train"],
         threshold=0.8,
         visualize=False
     )
@@ -153,13 +182,14 @@ def finish_him():
     
     FightEnded = click_on_element(
         window_title="Miscrits",
-        template_folder="Elements/ContinueButton",
+        template_folder=config.TEMPLATES["continue_button"],
         threshold=0.8,
         visualize=False,
         click_duration=0,
         y_offset=0
     )
     
+    # Sleep: 3 seconds ========================================================================================
     time.sleep(3)
 
     if FightEnded:
@@ -170,6 +200,10 @@ def finish_him():
         return True
     else:
         finish_him()
+
+#############################################
+# CAPTURE FUNCTIONS
+#############################################
 
 def capture_him(rarity):
 
@@ -188,27 +222,39 @@ def capture_him(rarity):
     # print("next page")
     # capture_attack()
 
-    click_on_element(
-        window_title="Miscrits",
-        template_folder="Elements/NextMenuPage",
-        threshold=0.8,
-        visualize=False,
-        click_duration=0,
-        y_offset=0
-    )
-    print("next page")
+    if config.CAPTURE_STRAT == 1:
+        click_on_element(
+            window_title="Miscrits",
+            template_folder=config.TEMPLATES["next_menu_page"],
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        print("next page")
 
-    # time.sleep(2)
+        time.sleep(2)
 
-    # click_on_element(
-    #     window_title="Miscrits",
-    #     template_folder="Elements/NextMenuPage",
-    #     threshold=0.8,
-    #     visualize=False,
-    #     click_duration=0,
-    #     y_offset=0
-    # )
-    # print("next page")
+        click_on_element(
+            window_title="Miscrits",
+            template_folder=config.TEMPLATES["next_menu_page"],
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        print("next page again")
+
+    elif config.CAPTURE_STRAT == 2:
+        click_on_element(
+            window_title="Miscrits",
+            template_folder=config.TEMPLATES["next_menu_page"],
+            threshold=0.8,
+            visualize=False,
+            click_duration=0,
+            y_offset=0
+        )
+        print("next page (single click)")
 
     capture_attack()
 
@@ -231,12 +277,13 @@ def capture_attack():
         (rarity == "legendary" and chance_value > 80) or
         (rarity != "legendary" and chance_value > 85) 
     ):
+        # Sleep: 4 seconds ====================================================================================
         time.sleep(4)
         
 
         captured=click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/CaptureButton",
+            template_folder=config.TEMPLATES["capture_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -245,11 +292,12 @@ def capture_attack():
         if captured:
             print("Clicked on Capture button")
 
+        # Sleep: 10 seconds ====================================================================================
         time.sleep(10)
 
         Okayed=click_on_element(
             window_title="Miscrits",   
-            template_folder="Elements/OkayButton",
+            template_folder=config.TEMPLATES["okay_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -260,29 +308,41 @@ def capture_attack():
 
         else:
 
-            click_on_element(
-                window_title="Miscrits",
-                template_folder="Elements/PrevMenuPage",
-                threshold=0.8,
-                visualize=False,
-                click_duration=0,
-                y_offset=0
-            )
+            if config.CAPTURE_STRAT == 1:
+                click_on_element(
+                    window_title="Miscrits",
+                    template_folder=config.TEMPLATES["prev_menu_page"],
+                    threshold=0.8,
+                    visualize=False,
+                    click_duration=0,
+                    y_offset=0
+                )
 
-            time.sleep(1)
+                # Sleep: 1 second
+                time.sleep(1)
 
-            click_on_element(
-                window_title="Miscrits",
-                template_folder="Elements/PrevMenuPage",
-                threshold=0.8,
-                visualize=False,
-                click_duration=0,
-                y_offset=0
-            )
+                click_on_element(
+                    window_title="Miscrits",
+                    template_folder=config.TEMPLATES["prev_menu_page"],
+                    threshold=0.8,
+                    visualize=False,
+                    click_duration=0,
+                    y_offset=0
+                )
+            elif config.CAPTURE_STRAT == 2:
+                click_on_element(
+                    window_title="Miscrits",
+                    template_folder=config.TEMPLATES["prev_menu_page"],
+                    threshold=0.8,
+                    visualize=False,
+                    click_duration=0,
+                    y_offset=0
+                )
 
             finish_him()
             return
         
+        # Sleep: 5 seconds ====================================================================================
         time.sleep(5)
         # Check pixel color at (773, 766)
         window_title = "Miscrits"
@@ -310,11 +370,12 @@ def capture_attack():
                 print("No Healing Needed")
                 NeedHeal = False
 
-        time.sleep(5)  # Wait for the attack animation to finish
+        # Sleep: 5 seconds ==================================================================================== 
+        time.sleep(5)
         
         continued=click_on_element(
-            window_title="Miscrits",   
-            template_folder="Elements/ContinueButton",
+            window_title="Miscrits", 
+            template_folder=config.TEMPLATES["continue_button"],  
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -324,11 +385,12 @@ def capture_attack():
         if continued:
             print("Clicked on Continue button after capture")
 
+        # Sleep: 3 seconds ====================================================================================
         time.sleep(3)
 
         Okayed = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/OkayButton",
+            template_folder=config.TEMPLATES["okay_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -337,11 +399,12 @@ def capture_attack():
         if Okayed:
             print("Clicked on Okay button on rankup")
 
+        # Sleep: 3 seconds ====================================================================================
         time.sleep(3)
 
         Okayed = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/OkayButton",
+            template_folder=config.TEMPLATES["okay_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -350,11 +413,12 @@ def capture_attack():
         if Okayed:
             print("Clicked on Okay button on Qest completion")
 
+        # Sleep: 3 seconds ====================================================================================
         time.sleep(3)
 
         kept = click_on_element(
             window_title="Miscrits",
-            template_folder="Elements/KeepButton",
+            template_folder=config.TEMPLATES["keep_button"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
@@ -363,12 +427,13 @@ def capture_attack():
         if kept:    
             print("Clicked on Keep button after capture")
 
+        # Sleep: 3 seconds ====================================================================================
         time.sleep(3)
 
         if NeedHeal:
             healed = click_on_element(
                 window_title="Miscrits",
-                template_folder="Elements/HealNowButton",
+                template_folder=config.TEMPLATES["heal_now_button"],
                 threshold=0.8,
                 visualize=False,
                 click_duration=0,
@@ -376,10 +441,10 @@ def capture_attack():
             )
             if healed:
                 print("Clicked on Heal button after capture")
-                time.sleep(2)
+                # Sleep: 2 seconds =============================================================================
                 click_on_element(
                     window_title="Miscrits",
-                    template_folder="Elements/YesButton",
+                    template_folder=config.TEMPLATES["yes_button"],
                     threshold=0.8,
                     visualize=False,
                     click_duration=0,
@@ -387,6 +452,9 @@ def capture_attack():
                 )
 
     else:
-        attack(1)
-        capture_attack()
+        if config.CAPTURE_STRAT == 1:
+            attack(1)
+        elif config.CAPTURE_STRAT == 2:
+            attack(2)
 
+        capture_attack()
