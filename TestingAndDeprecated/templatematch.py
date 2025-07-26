@@ -111,4 +111,4 @@ def match_any_template(template_folder=TEMPLATE_FOLDER):
 
 # ==== MAIN ====
 if __name__ == "__main__":
-    match_any_template(template_folder="Elements/TrainButton")
+    match_any_template(template_folder="Elements/OkayButton")

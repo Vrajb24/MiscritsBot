@@ -112,7 +112,7 @@ def check_for_quest_completion():
     quest=click_on_element(
         window_title="Miscrits", 
         template_folder="Elements/OkayButton",
-        threshold=0.8,
+        threshold=0.9,
         visualize=False,
         click_duration=0,
         y_offset=0

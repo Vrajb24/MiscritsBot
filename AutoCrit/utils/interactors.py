@@ -36,7 +36,7 @@ def click_on_element(window_title, template_folder, threshold=0.8, visualize=Fal
     sift = cv2.SIFT_create()
     FLANN_INDEX_KDTREE = 1
     flann = cv2.FlannBasedMatcher(
-        dict(algorithm=cv2.FLANN_INDEX_KDTREE, trees=5),
+        dict(algorithm=FLANN_INDEX_KDTREE, trees=5),
         dict()
     )
 

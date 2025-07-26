@@ -21,7 +21,7 @@ if __name__ == "__main__":
         # Start fight by clicking on element
         element_clicked = click_on_element(
             window_title="Miscrits", 
-            template_folder=config.TEMPLATES["WhiteClothAttic"],
+            template_folder=config.TEMPLATES["icy_crate"],
             threshold=0.8,
             visualize=False,
             click_duration=0,
