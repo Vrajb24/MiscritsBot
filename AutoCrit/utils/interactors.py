@@ -34,6 +34,7 @@ def click_on_element(window_title, template_folder, threshold=0.8, visualize=Fal
     MIN_MATCH_COUNT = 10
     # Initialize SIFT and FLANN
     sift = cv2.SIFT_create()
+    FLANN_INDEX_KDTREE = 1
     flann = cv2.FlannBasedMatcher(
         dict(algorithm=cv2.FLANN_INDEX_KDTREE, trees=5),
         dict()
@@ -168,9 +169,6 @@ def heal():
         click_duration=0,
         y_offset=0
     )
-# =====================================================
-# =                 DEPRECATED CODE                   =
-# =====================================================
 
 def click_on_target(target_type):
     print(f"Clicking on target: {target_type}")
@@ -192,6 +190,10 @@ def click_on_target(target_type):
 
     click_at(click_x, click_y)
     print(f"Clicked on {target_type} at ({click_x}, {click_y})")
+
+# =====================================================
+# =                 DEPRECATED CODE                   =
+# =====================================================
 
 # def click_on_element(window_title, template_folder, threshold=0.8, visualize=False, click_duration=0, y_offset=10):
 #     """
